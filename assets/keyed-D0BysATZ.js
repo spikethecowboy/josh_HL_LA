@@ -1,0 +1,1 @@
+import{_ as e,k as t,m as n,v as r}from"./dist-B_5LMGVo.js";var i=e(class extends r{constructor(){super(...arguments),this.key=t}render(e,t){return this.key=e,t}update(e,[t,r]){return t!==this.key&&(n(e),this.key=t),r}});export{i as t};

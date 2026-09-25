@@ -1,0 +1,1 @@
+import{s as e}from"./VertexArrayObject-DolY79RQ.js";function t(t,n,r,i=``){return new e(t,i+n.vertexShader,i+n.fragmentShader,r)}export{t};

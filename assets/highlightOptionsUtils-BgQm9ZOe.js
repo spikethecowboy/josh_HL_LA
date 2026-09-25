@@ -1,0 +1,1 @@
+import"./HighlightDefaults-DSod-_Np.js";function e(e){return e?.name??`default`}export{e as t};

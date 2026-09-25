@@ -1,0 +1,1 @@
+import{Ua as e}from"./series-length-DjL9To8s.js";var t=e=>e.lineSymbol?.style,n=(t,n)=>{n.lineSymbol??=e(),n.lineSymbol.style=t},r=e=>e.lineSymbol?.width,i=(t,n)=>{n.lineSymbol??=e(),n.lineSymbol.width=t};export{r as i,n,t as r,i as t};
