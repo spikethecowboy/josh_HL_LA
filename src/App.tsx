@@ -32,7 +32,7 @@ export default function App() {
   const [loggedInState, setLoggedInState] = useState<boolean>(false);
 
   useEffect(() => {
-    authenticate(setLoggedInState, "V2b9ysdMrpUBEWv4");
+    authenticate(setLoggedInState, "qF6CZsAdqSxlG55V");
   }, []);
 
   return (

@@ -17,6 +17,7 @@
     "@arcgis/map-components": "^5.1.0",
     "@esri/calcite-components": "^5.1.1",
     "@tanstack/react-query": "^5.103.2",
+    "@vitejs/plugin-react-swc": "^4.3.3",
     "npm-dropdown-package": "^1.0.7",
     "query-layers-expression": "^1.1.1",
     "react": "^19.2.7",
@@ -27,7 +28,6 @@
     "@types/node": "~24.10.1",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
-    "@vitejs/plugin-react-swc": "^4.3.3",
     "ghpages": "^0.0.10",
     "typescript": "~6.0.2",
     "vite": "^8.0.16"
