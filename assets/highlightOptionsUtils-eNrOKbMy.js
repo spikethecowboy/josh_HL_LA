@@ -1,0 +1,1 @@
+import"./HighlightDefaults-Brrp6PLC.js";function e(e){return e?.name??`default`}export{e as t};

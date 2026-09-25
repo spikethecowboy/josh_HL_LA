@@ -1,1 +1,0 @@
-import{T as e}from"./Error-BDJwB66_.js";function t(){return e(`curve-densification-coarse-segments`)}function n(){return e(`curve-densification-max-segments`)}function r(){return e(`curve-densification-min-segments`)}function i(){return e(`curve-densification-pixel-deviation`)}export{i,r as n,t as r,n as t};

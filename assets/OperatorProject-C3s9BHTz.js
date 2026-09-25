@@ -1,1 +1,0 @@
-import"./Point2D-BiY2ltRR.js";import{gt as e}from"./SpatialReference-gLeiEeKs.js";export{e as OperatorProject};
