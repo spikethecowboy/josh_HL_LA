@@ -1,1 +1,0 @@
-import"./apiConverter-C2GQ-wz7.js";import{n as e,t}from"./centroidOperator-EcOCC3il.js";export{e as execute,t as supportsCurves};

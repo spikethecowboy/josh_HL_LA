@@ -1,1 +1,0 @@
-import"./apiConverter-C2GQ-wz7.js";import{i as e,r as t,t as n}from"./clipOperator-D3iqz_AS.js";export{e as execute,n as executeMany,t as supportsCurves};
