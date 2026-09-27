@@ -5,7 +5,7 @@ import "@esri/calcite-components/components/calcite-panel";
 import "@arcgis/map-components/components/arcgis-basemap-gallery";
 import "@arcgis/map-components/components/arcgis-layer-list";
 import { useEffect, useRef, useState } from "react";
-import { useTimeSliderToggle } from "../contexts/TimeSliderContext";
+// import { useTimeSliderToggle } from "../contexts/TimeSliderContext";
 
 // ----------------------------------------------------
 // TYPES
@@ -32,7 +32,7 @@ export default function ActionBar() {
 
   // Slider overlay lives on the map itself (see MapDisplay) — this just
   // flips the shared toggle
-  const { showTimeSlider, toggleTimeSlider } = useTimeSliderToggle();
+  // const { showTimeSlider, toggleTimeSlider } = useTimeSliderToggle();
 
   // ----------------------------------------------------
   // LAYER LIST SETUP
@@ -108,12 +108,14 @@ export default function ActionBar() {
           onClick={() => togglePanel("basemap")}
         ></calcite-action>
 
+        {/*----------------------------------------------------
         <calcite-action
           icon="clock"
           text="Time Slider"
           active={showTimeSlider}
           onClick={toggleTimeSlider}
         ></calcite-action>
+        ----------------------------------------------------*/}
 
         <calcite-action
           icon="information"

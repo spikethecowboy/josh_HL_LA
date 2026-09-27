@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { useMyContext, type SelectedLocation } from "../contexts/MyContext";
-import { useActiveDateFields } from "../contexts/TimeSliderContext";
 import { fieldStatistic, pieChartStatusData } from "../Query";
 import * as am5 from "@amcharts/amcharts5";
 import * as am5percent from "@amcharts/amcharts5/percent";
@@ -11,6 +10,10 @@ import {
   lotLayer,
   lotStatuses,
   lotstatisticField,
+  lotStatusField,
+  lotHighLevelField,
+  DEFAULT_HANDED_OVER_FIELD,
+  DEFAULT_NOT_YET_FIELD,
   handedOverLotsLayer,
   toBeHandedOverLotsLayer,
   subterraneanLotsLayer,
@@ -25,27 +28,15 @@ type ChartDatum = { category: string; value: number; color: string; code: number
 
 // ----------------------------------------------------
 // LOCAL HOOK: data fetching
-// statusField/handedOverField/notYetField come from TimeSliderContext —
-// a date's NVS/JV/NY fields while the slider is on, or the defaults
-// while it's off. keepPreviousData means `data` stays populated across
-// filter changes instead of resetting to undefined mid-fetch.
+// statusField/handedOverField/notYetField are fixed constants from
+// layers.ts (no longer sourced from the time slider). Public lots are
+// determined separately: lotStatusField (StatusNVS3) = 0 means public.
+// keepPreviousData means `data` stays populated across filter changes
+// instead of resetting to undefined mid-fetch.
 // ----------------------------------------------------
-function useLotData(
-  { packageName, type, station }: SelectedLocation,
-  statusField: string,
-  handedOverField: string,
-  notYetField: string,
-) {
+function useLotData({ packageName, type, station }: SelectedLocation) {
   return useQuery({
-    queryKey: [
-      "totalLots",
-      packageName,
-      type,
-      station,
-      statusField,
-      handedOverField,
-      notYetField,
-    ],
+    queryKey: ["totalLots", packageName, type, station],
     queryFn: async () => {
       const baseFilter = {
         qFields: ["Package", "Type", "Station1"] as [any?, any?, any?],
@@ -53,21 +44,22 @@ function useLotData(
       };
 
       const totalWhere = new QueryExpressionLayers({ ...baseFilter }).queryExpression();
+      // lotStatusField (StatusNVS3) = 0 marks a lot as public.
       const publicWhere = new QueryExpressionLayers({
         ...baseFilter,
-        qExpression: `${statusField} IS NULL`,
+        qExpression: `${lotStatusField} IS NULL`,
       }).queryExpression();
       const handedOverWhere = new QueryExpressionLayers({
         ...baseFilter,
-        qExpression: `${handedOverField} = 1`,
+        qExpression: `${DEFAULT_HANDED_OVER_FIELD} = 1`,
       }).queryExpression();
       const toBeHandedOverWhere = new QueryExpressionLayers({
         ...baseFilter,
-        qExpression: `${notYetField} = 1`,
+        qExpression: `${DEFAULT_NOT_YET_FIELD} = 1`,
       }).queryExpression();
       const statusWhere = new QueryExpressionLayers({
         ...baseFilter,
-        qExpression: `${statusField} IS NOT NULL`,
+        qExpression: `${lotHighLevelField} IS NOT NULL`,
       }).queryExpression();
 
       const commonArgs = {
@@ -86,7 +78,7 @@ function useLotData(
             where: statusWhere,
             layer: lotLayer,
             statusList: lotStatuses,
-            statusField: statusField,
+            statusField: lotHighLevelField,
             statisticField: lotstatisticField,
             statisticType: "count",
           }),
@@ -214,8 +206,8 @@ function usePieChart(
     legend.labels.template.setAll({
       oversizedBehavior: "truncate",
       fill: am5.color(textColorRef.current),
-      width: 250,
-      maxWidth: 270,
+      width: 300,
+      maxWidth: 360,
     });
     legend.valueLabels.template.setAll({ textAlign: "right", fill: am5.color(textColorRef.current) });
     legend.itemContainers.template.setAll({ paddingTop: 3, paddingBottom: 1 });
@@ -260,8 +252,6 @@ function usePieChart(
 // ----------------------------------------------------
 export default function LotChart() {
   const { selectedLocation, selectedStatus, updateStatus } = useMyContext();
-  const { activeStatusField, activeHandedOverField, activeNotYetField } =
-    useActiveDateFields();
 
   // Background toggle: default (transparent — original look) or white.
   // Text flips to a dark shade only when white is active, so it stays
@@ -280,12 +270,7 @@ export default function LotChart() {
     updateStatus(code === null ? null : { source: "lot", code });
   };
 
-  const { data, isError } = useLotData(
-    selectedLocation,
-    activeStatusField,
-    activeHandedOverField,
-    activeNotYetField,
-  );
+  const { data, isError } = useLotData(selectedLocation);
   const chartData = data?.chartData ?? [];
 
   // With keepPreviousData, data only stays undefined until the very
@@ -314,12 +299,12 @@ export default function LotChart() {
 
     handedOverLotsLayer.definitionExpression = new QueryExpressionLayers({
       ...locationFilter,
-      qExpression: `${activeHandedOverField} = 1`,
+      qExpression: `${DEFAULT_HANDED_OVER_FIELD} = 1`,
     }).queryExpression();
 
     toBeHandedOverLotsLayer.definitionExpression = new QueryExpressionLayers({
       ...locationFilter,
-      qExpression: `${activeNotYetField} = 1`,
+      qExpression: `${DEFAULT_NOT_YET_FIELD} = 1`,
     }).queryExpression();
 
     subterraneanLotsLayer.definitionExpression = new QueryExpressionLayers({
@@ -333,20 +318,13 @@ export default function LotChart() {
       type,
       station,
       lotSelectedCode,
-      activeStatusField,
+      lotHighLevelField,
     ).then((extent) => {
       if (extent && mapView.current && shouldZoom) {
         mapView.current.goTo(extent);
       }
     });
-  }, [
-    selectedLocation,
-    selectedStatus,
-    lotSelectedCode,
-    activeStatusField,
-    activeHandedOverField,
-    activeNotYetField,
-  ]);
+  }, [selectedLocation, selectedStatus, lotSelectedCode]);
 
   const totalNumber = data?.totalNumber ?? 0;
   const publicNumber = data?.publicNumber ?? 0;

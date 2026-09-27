@@ -51,7 +51,7 @@ export default function Header() {
         await landAcquisitionDateTable.load();
 
         const result = await landAcquisitionDateTable.queryFeatures({
-          where: "category = 'Land Acquisition'",
+          where: "category = 'Land Acquisition HL'",
           outFields: ["date"],
           num: 1,
         });
@@ -75,7 +75,7 @@ export default function Header() {
   return (
     // 3-column layout: title (left) | Dropdown (center) | date (right)
     <header slot="header" style={styles.header}>
-      <span style={styles.title}>MMSP Land</span>
+      <span style={styles.title}>MMSP Land (HL)</span>
 
       <Dropdown />
 

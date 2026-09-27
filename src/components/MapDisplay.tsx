@@ -8,7 +8,7 @@ import { useEffect, useRef } from "react";
 import type { ArcgisMap } from "@arcgis/map-components/dist/components/arcgis-map";
 import type MapView from "@arcgis/core/views/MapView";
 
-import { landGroupLayer, stationLayer, structuresGroupLayer, isfLayer, ortigasStationGroupLayer, alignmentLayer, eastValenzualaStationGroupLayer, depotBuildingsGroupLayer,
+import { landGroupLayer, stationLayer, ortigasStationGroupLayer, alignmentLayer, eastValenzuelaStationGroupLayer, depotBuildingsGroupLayer,
           boundaryGroupLayer, senateDepEdStationGroupLayer
  } from "../layers";
 import { useTimeSliderToggle } from "../contexts/TimeSliderContext";
@@ -41,13 +41,11 @@ export default function MapDisplay() {
       mapView.current = viewRef.current;
 
       viewRef.current.map?.add(landGroupLayer);
-      viewRef.current.map?.add(structuresGroupLayer);
-      viewRef.current.map?.add(isfLayer);
       viewRef.current.map?.add(boundaryGroupLayer);
       viewRef.current.map?.add(depotBuildingsGroupLayer);
       viewRef.current.map?.add(senateDepEdStationGroupLayer);
       viewRef.current.map?.add(ortigasStationGroupLayer);
-      viewRef.current.map?.add(eastValenzualaStationGroupLayer);
+      viewRef.current.map?.add(eastValenzuelaStationGroupLayer);
       viewRef.current.map?.add(alignmentLayer);
       viewRef.current.map?.add(stationLayer);
     };
