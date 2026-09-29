@@ -11,22 +11,15 @@ import type MapView from "@arcgis/core/views/MapView";
 import { landGroupLayer, stationLayer, ortigasStationGroupLayer, alignmentLayer, eastValenzuelaStationGroupLayer, depotBuildingsGroupLayer,
           boundaryGroupLayer, senateDepEdStationGroupLayer
  } from "../layers";
-import { useTimeSliderToggle } from "../contexts/TimeSliderContext";
-import TimeSlider from "./TimeSlider";
 
-// Module-level (not a React ref) so LotChart/ISFChart can import it and
-// call goTo() directly, without threading the view through context.
+// Module-level so LotChart/ISFChart can call goTo() directly
 export const mapView: { current: MapView | null } = { current: null };
 
 export default function MapDisplay() {
   const mapRef = useRef<ArcgisMap | null>(null);
   const viewRef = useRef<MapView | null>(null);
 
-  const { showTimeSlider } = useTimeSliderToggle();
-
-  // ----------------------------------------------------
-  // EFFECT 1: One-time map setup.
-  // ----------------------------------------------------
+  // One-time map setup
   useEffect(() => {
     const initializeMap = async () => {
       if (!mapRef.current) return;
@@ -37,7 +30,6 @@ export default function MapDisplay() {
 
       if (!viewRef.current) return;
 
-      // Publish the view so LotChart/ISFChart can drive goTo() themselves.
       mapView.current = viewRef.current;
 
       viewRef.current.map?.add(landGroupLayer);
@@ -63,7 +55,6 @@ export default function MapDisplay() {
       zoom={12}
     >
       <arcgis-compass slot="top-right" />
-      {showTimeSlider && <TimeSlider />}
     </arcgis-map>
   );
 }

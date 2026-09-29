@@ -27,12 +27,9 @@ const CHART_ID = "lotPieChart";
 type ChartDatum = { category: string; value: number; color: string; code: number | string };
 
 // ----------------------------------------------------
-// LOCAL HOOK: data fetching
-// statusField/handedOverField/notYetField are fixed constants from
-// layers.ts (no longer sourced from the time slider). Public lots are
-// determined separately: lotStatusField (StatusNVS3) = 0 means public.
-// keepPreviousData means `data` stays populated across filter changes
-// instead of resetting to undefined mid-fetch.
+// DATA FETCHING
+// Public lots = lotStatusField (StatusNVS3) is null.
+// keepPreviousData keeps `data` populated across filter changes.
 // ----------------------------------------------------
 function useLotData({ packageName, type, station }: SelectedLocation) {
   return useQuery({
@@ -44,7 +41,6 @@ function useLotData({ packageName, type, station }: SelectedLocation) {
       };
 
       const totalWhere = new QueryExpressionLayers({ ...baseFilter }).queryExpression();
-      // lotStatusField (StatusNVS3) = 0 marks a lot as public.
       const publicWhere = new QueryExpressionLayers({
         ...baseFilter,
         qExpression: `${lotStatusField} IS NULL`,
@@ -99,8 +95,7 @@ function useLotData({ packageName, type, station }: SelectedLocation) {
   });
 }
 
-// Disposes any previous chart root under this id, so re-mounting
-// doesn't leave a duplicate amCharts instance behind
+// Disposes a previous chart root under this id (avoids duplicates on remount)
 function maybeDisposeRoot(divId: string) {
   am5.array.each(am5.registry.rootElements, function (root) {
     if (root.dom.id === divId) {
@@ -110,9 +105,9 @@ function maybeDisposeRoot(divId: string) {
 }
 
 // ----------------------------------------------------
-// LOCAL HOOK: chart lifecycle
-// Builds the amCharts pie chart once on mount, disposes on unmount,
-// and pumps new chartData in without rebuilding.
+// CHART LIFECYCLE
+// Builds the pie chart once, disposes on unmount, updates data/color
+// in place afterward (no rebuild).
 // ----------------------------------------------------
 function usePieChart(
   chartData: ChartDatum[],
@@ -123,16 +118,14 @@ function usePieChart(
   const pieSeriesRef = useRef<any>({});
   const legendRef = useRef<any>({});
 
-  // Lets the click handler below read the latest selectedCode without
-  // needing to be in its own dependency array
+  // Ref so the click handler always reads the latest selectedCode
   const selectedCodeRef = useRef<number | string | null>(selectedCode);
   useEffect(() => {
     selectedCodeRef.current = selectedCode;
   }, [selectedCode]);
 
-  // Lets the chart-creation effect below read the current textColor at
-  // mount time without adding it to that effect's dependency array
-  // (chart creation should only run once)
+  // Ref so chart creation (mount-only) can read textColor without
+  // depending on it
   const textColorRef = useRef(textColor);
   useEffect(() => {
     textColorRef.current = textColor;
@@ -175,12 +168,14 @@ function usePieChart(
       tooltipText: '{category}: {valuePercentTotal.formatNumber("#.")}%',
     });
 
+    // Slice color comes from each data point's own `color` field
     pieSeries.slices.template.adapters.add("fill", (fill, target) => {
       const color = (target.dataItem?.dataContext as any)?.color;
       return color ? am5.color(color) : fill;
     });
     pieSeries.slices.template.adapters.add("stroke", () => am5.color("#ffffff"));
 
+    // Clicking a slice toggles its status as the selected filter
     pieSeries.slices.template.events.on("click", (ev) => {
       const code = (ev.target.dataItem?.dataContext as any)?.code ?? null;
       const prev = selectedCodeRef.current;
@@ -217,20 +212,15 @@ function usePieChart(
     };
   }, []);
 
-  // Pushes new data into the existing chart/legend on every chartData
-  // change, instead of rebuilding the whole chart
+  // Push new data into the existing chart/legend (no rebuild)
   useEffect(() => {
     pieSeriesRef.current?.data?.setAll(chartData);
     legendRef.current?.data?.setAll(pieSeriesRef.current?.dataItems);
-    //pieSeriesRef.current?.appear(0, 1);
   }, [chartData]);
 
-  // Recolors the legend's labels whenever the background toggle
-  // changes — amCharts renders its own canvas text, so it doesn't pick
-  // up the surrounding CSS color and has to be updated through its API.
-  // Updating the template alone isn't enough to repaint labels that
-  // were already rendered, so each existing label instance is also
-  // updated directly.
+  // amCharts renders its own canvas text, so the legend has to be
+  // recolored through its API — updating each existing label instance,
+  // not just the template, or already-rendered labels won't repaint.
   useEffect(() => {
     const legend = legendRef.current;
     if (!legend?.labels) return;
@@ -253,16 +243,15 @@ function usePieChart(
 export default function LotChart() {
   const { selectedLocation, selectedStatus, updateStatus } = useMyContext();
 
-  // Background toggle: default (transparent — original look) or white.
-  // Text flips to a dark shade only when white is active, so it stays
-  // readable; it stays white in the default state.
+  // Background toggle: default (transparent) or white, text flips dark
+  // only when white is active
   const [background, setBackground] = useState<"default" | "white">("default");
   const isDefault = background === "default";
   const bgColor = isDefault ? "transparent" : "#ffffff";
   const textColor = isDefault ? "#ffffff" : "#1a1a1a";
   const toggleBackground = () => setBackground((prev) => (prev === "default" ? "white" : "default"));
 
-  // Only treat the selection as "ours" if it's tagged source: "lot"
+  // Only "ours" if the selection is tagged with this chart's source
   const lotSelectedCode =
     selectedStatus?.source === "lot" ? (selectedStatus.code as number) : null;
 
@@ -273,21 +262,15 @@ export default function LotChart() {
   const { data, isError } = useLotData(selectedLocation);
   const chartData = data?.chartData ?? [];
 
-  // With keepPreviousData, data only stays undefined until the very
-  // first fetch resolves — after that it's always populated, so this
-  // flips false -> true once and never again.
+  // False until the first fetch resolves, then stays true
   const hasData = !!data;
 
   usePieChart(chartData, lotSelectedCode, handleSliceClick, textColor);
 
-  // Filters lotLayer and zooms the map to match — only zooms if no
-  // status is selected yet, or the selection belongs to this chart.
-  //
-  // Also keeps the three derived lot layers (handedOver, toBeHandedOver,
-  // subterranean) filtered to the current package/type/station, while
-  // preserving each layer's own base condition (HandedOVer = 1,
-  // not_yet = 1, Tunnel_Depth > 18). These never drive the map zoom —
-  // only lotLayer does that, via filterAndGetTargetExtent below.
+  // Filters lotLayer and zooms to match (only if no status is selected,
+  // or the selection is this chart's own). Also keeps the three derived
+  // lot layers filtered to the current package/type/station, on top of
+  // each one's own base condition — those never drive the zoom.
   useEffect(() => {
     const { packageName, type, station } = selectedLocation;
     const shouldZoom = selectedStatus === null || selectedStatus.source === "lot";
@@ -332,8 +315,7 @@ export default function LotChart() {
   const handedOverNumber = data?.handedOverNumber ?? 0;
   const toBeHandedOverNumber = data?.toBeHandedOverNumber ?? 0;
 
-  // Percentage of total lots, guarded against divide-by-zero when
-  // totalNumber is 0 (e.g. no lots match the current filter yet).
+  // Guarded against divide-by-zero when nothing matches the filter yet
   const handedOverPercentage =
     totalNumber > 0 ? Number(((handedOverNumber / totalNumber) * 100).toFixed(1)) : 0;
   const toBeHandedOverPercentage =
@@ -407,8 +389,7 @@ export default function LotChart() {
         </div>
       </div>
 
-      {/* Background toggle switch — its own container, fixed to the
-          viewport's lower right, default (transparent) <-> white */}
+      {/* Background toggle: default (transparent) <-> white */}
       <div
         style={{
           position: "relative",

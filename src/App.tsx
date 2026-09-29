@@ -13,7 +13,6 @@ import ActionBar from "./components/ActionBar";
 
 // Contexts
 import { MyContextProvider } from "./contexts/MyContext";
-import { TimeSliderProvider } from "./contexts/TimeSliderContext";
 
 // Created once outside the component so it's never recreated on re-renders
 const queryClient = new QueryClient({
@@ -41,11 +40,9 @@ export default function App() {
         <MyContextProvider>
           <QueryClientProvider client={queryClient}>
             <Header />
-            <TimeSliderProvider>
               <MapDisplay />
               <ActionBar />
               <SidePanel />
-            </TimeSliderProvider>
           </QueryClientProvider>
         </MyContextProvider>
       </calcite-shell>
