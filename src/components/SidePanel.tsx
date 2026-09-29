@@ -8,6 +8,10 @@ import "@esri/calcite-components/dist/components/calcite-tab-title";
 
 import LotChart from "./LotChart";
 
+const tabContentStyle = {
+  "--calcite-tab-content-block-padding": "0px",
+} as React.CSSProperties;
+
 export default function SidePanel() {
   return (
     <>
@@ -36,13 +40,15 @@ export default function SidePanel() {
           slot="title-group"
           id="thetabs"
         >
-          <calcite-tab-title className="Chart">Chart</calcite-tab-title>
+          <calcite-tab-title className="Chart">
+            Chart
+          </calcite-tab-title>
         </calcite-tab-nav>
 
         {/* ----------------------------------------------------
             TAB CONTENT
         ---------------------------------------------------- */}
-        <calcite-tab>
+        <calcite-tab style={tabContentStyle}>
           <LotChart />
         </calcite-tab>
       </calcite-tabs>
