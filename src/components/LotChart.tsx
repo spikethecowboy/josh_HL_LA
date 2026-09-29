@@ -186,7 +186,7 @@ function usePieChart(
     pieSeries.ticks.template.setAll({ visible: false, scale: 0 });
 
     const legend = chart.children.push(
-      am5.Legend.new(root, { centerX: am5.percent(50), x: am5.percent(50), scale: 0.9, height: 170 }),
+      am5.Legend.new(root, { centerX: am5.percent(50), x: am5.percent(50), scale: 0.9, height: 110 }),
     );
     legendRef.current = legend;
 
